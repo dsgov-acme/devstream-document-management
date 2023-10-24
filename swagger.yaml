@@ -1,0 +1,166 @@
+openapi: 3.0.3
+info:
+  description: "This is a Document Management API"
+  version: "1.0.0"
+  title: "Document Management API"
+servers:
+  - url: "/api/v1"
+paths:
+  /documents:
+    post:
+      summary: Upload a document.
+      description: Upload a document.
+      operationId: upload
+      requestBody:
+        description: document to be uploaded.
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/FileContent"
+      responses:
+        "202":
+          description: "Returns a document id, to check upload ingestion status and\
+            \ retrieve."
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UploadResponse'
+        "415":
+          description: "Uploaded document mime type is not allowed"
+  /documents/{id}:
+    get:
+      summary: Get details about an uploaded document.
+      description: |-
+        Get details about an uploaded document.
+         Some fields, like 'metadata' and 'download' information, are only available if the
+         document has passed malware scanning: <code>{'scan_status': {'code': 'READY'}}</code>.
+      operationId: getDocument
+      parameters:
+        - name: id
+          in: path
+          description: document id obtained during upload.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "Details about the document, including id, scan status,\
+            \ original file name, and uploaded by."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetDocumentResponse'
+  /documents/{id}/file-data:
+    get:
+      summary: Get byte stream of uploaded document contents.
+      description: |-
+        Get the contents of the document.
+      operationId: getFileData
+      parameters:
+        - name: id
+          in: path
+          description: document id obtained during upload.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "Byte stream of document contents, tunneled from backend storage."
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: byte
+  /documents/{id}/process:
+    post:
+      summary: Creates a document processing request
+      description: Creates a new request for a document to be enqueued and later processed.
+      operationId: enqueueDocumentProcessingRequest
+      parameters:
+        - in: path
+          name: id
+          description: The document id, that is to be processed.
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: reprocess
+          description: A flag indicating whether to reprocess the document. Default is false.
+          required: false
+          schema:
+            type: boolean
+            default: false
+      requestBody:
+        description: A request for AI processing of a document.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/DocumentProcessingRequest'
+      responses:
+        '200':
+          description: "Processing request successfully enqueued."
+  /documents/{id}/processing-result:
+    get:
+      summary: Gets processing results for a given document.
+      description: Gets processing results for a given document.
+      operationId: getDocumentProcessingResults
+      parameters:
+        - in: path
+          name: id
+          description: The document id whose document processing results are to be retrieved.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of processing results for a given document.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentProcessingResultModel'
+components:
+  schemas:
+    FileContent:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+    UploadResponse:
+      type: object
+      properties:
+        document_id:
+          type: string
+      description: Response model for upload requests.
+    GetDocumentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        uploadedBy:
+          type: string
+      description: Response model for getting all details about an uploaded documents.
+    DocumentProcessingResultModel:
+      type: object
+      properties:
+        processorId:
+          type: string
+        status:
+          type: string
+        result:
+          type: object
+        timestamp:
+          type: string
+    DocumentProcessingRequest:
+      type: object
+      properties:
+        processorId:
+          type: string

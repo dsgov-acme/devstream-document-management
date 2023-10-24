@@ -1,0 +1,117 @@
+environment: "local"
+
+postgres:
+  enabled: false
+  persistence:
+    size: 1Gi
+  env:
+    POSTGRES_DB: "local-document-management-db"
+    POSTGRES_HOST: 'postgres-14-alpine'
+    POSTGRES_PASSWORD: "root"
+    POSTGRES_PORT: 5432
+    POSTGRES_USER: "root"
+
+resources:
+  documentManagement:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 1024Mi
+  cerbos:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 256Mi
+  clamavService:
+    requests:
+      cpu: 100m
+      memory: 2Gi
+    limits:
+      memory: 2Gi
+  clamavMirror:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 256Mi
+  pubSubEmulator:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+  gcloudStorageEmulator:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 256Mi
+
+gcloudStorageEmulator:
+  persistent: false
+  persistentStorage:
+    className: "gcloud-storage-emulator"
+    size: 2Gi
+    nodePath: "/mnt/gcloud-storage-emulator"
+
+clamav:
+  persistentStorage:
+    size: 2Gi
+
+net:
+  host: "api.devstream.test"
+
+env:
+  # start infrastructure selector configs
+  CLAMAV_ENABLED: true
+  DOCUMENT_PROCESSING_ENABLED: true
+  GOOGLE_STORAGE_EMULATED: true
+  PUBSUB_EMULATOR_HOST: "pubsub-emulator-service:8085" # set actual "host:port" to enable or false to disable
+  PUBSUB_ENABLED: true
+  DOCUMENT_QUALITY_PROCESSOR_ID: "8ee6e621c0eb921"
+  DOCUMENT_ID_PROOFING_PROCESSOR_ID: "b797b0ca67e0582b"
+  # end of infrastructure selector configs
+  ALLOWED_ORIGINS: "http://localhost:4200, http://localhost:4201, http://public.devstream.test, http://agency.devstream.test"
+  DB_CONNECTION_URL: "jdbc:postgresql://document-management-postgres:5432/local-document-management-db"
+  DB_USERNAME: "root"
+  DB_PASSWORD: "root"
+  GCP_PROJECT_ID: "devstream-dev"
+  CERBOS_URI: "127.0.0.1:3592"
+  SELF_SIGN_PUBLIC_KEY: "${sm://projects/devstream-dev/secrets/devstream-self-signed-token-public-key/versions/latest}"
+  SELF_SIGN_PRIVATE_KEY: "${sm://projects/devstream-dev/secrets/devstream-self-signed-token-private-key/versions/latest}"
+  USER_MANAGEMENT_BASE_URL: "http://user-management/um"
+  PUBSUB_CLAMAV_TOPIC: "projects/devstream-dev/topics/NEW_FILE_UPLOAD"
+  PUBSUB_DOCUMENT_PROCESSING_TOPIC: "projects/devstream-dev/topics/DOCUMENT_PROCESSING_REQUESTS"
+  PUBSUB_DOCUMENT_PROCESSING_RESULT_TOPIC: "projects/devstream-dev/topics/DOCUMENT_PROCESSING_RESULTS"
+  PUBSUB_CLAMAV_SUBSCRIPTION: "projects/devstream-dev/subscriptions/NEW_FILE_UPLOAD_SUBSCRIPTION"
+  PUBSUB_DOCUMENT_PROCESSING_SUBSCRIPTION: "projects/devstream-dev/subscriptions/DOCUMENT_PROCESSING_SUBSCRIPTION"
+  UNSCANNED_BUCKET_NAME: devstream-dev-unscanned
+  QUARANTINED_BUCKET_NAME: devstream-dev-quarantined
+  SCANNED_BUCKET_NAME: devstream-dev-scanned
+  STORAGE_PROVIDER: "google"
+  GCLOUD_STORAGE_EMULATOR_HOST: "gcloud-storage-emulator-service:4443"
+  ALLOWED_MIME_TYPES:
+    - "image/gif"
+    - "image/jpeg"
+    - "image/png"
+    - "image/heic"
+    - "application/pdf"
+    - "text/csv"
+    - "application/msword"
+    - "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    - "application/rtf"
+    - "text/plain"
+    - "application/vnd.ms-excel"
+    - "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    - "application/vnd.ms-xpsdocument"
+    - "application/vnd.wordperfect"
+    - "application/vnd.oasis.opendocument.text"
+    - "image/svg+xml"
+    - "image/tiff"
+  ALLOWED_OCTET_STREAM_EXTENSIONS:
+    - ".mpa"
+  TOKEN_PRIVATE_KEY_SECRET: "devstream-self-signed-token-private-key"
+  TOKEN_ISSUER: "devstream"
+  TOKEN_PRIVATE_KEY_VERSION: "latest"

@@ -1,0 +1,9 @@
+apiVersion: api.cerbos.dev/v1
+derivedRoles:
+  name: document-roles
+  definitions:
+    - name: self
+      parentRoles: ["document-uploader"]
+      condition:
+        match:
+          expr: request.resource.attr.uploadedBy == request.principal.id

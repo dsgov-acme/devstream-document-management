@@ -1,0 +1,25 @@
+plugins {
+	id 'org.openapi.generator' version '7.0.0' apply false
+	id 'com.google.cloud.tools.jib' version '3.2.0' apply false
+	id 'org.sonarqube' version '4.3.1.3277' apply false
+	id 'com.diffplug.spotless' version '6.12.1' apply false
+	id 'org.owasp.dependencycheck' version '8.0.1' apply false
+	id 'com.github.spotbugs' version '5.0.13' apply false
+}
+
+allprojects {
+	group = 'io.nuvalence.ds4g.documentmanagement'
+	version = '0.0.1-SNAPSHOT'
+
+	repositories {
+		mavenCentral()
+		maven {
+			url 'https://oss.sonatype.org/service/local'
+		}
+		maven {
+			url 'https://oss.sonatype.org/content/repositories/snapshots/'
+		}
+	}
+}
+
+

@@ -1,0 +1,87 @@
+# clamav storage
+{{- if .Values.env.CLAMAV_ENABLED }}
+{{- if eq .Values.environment "local" }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: clamavdb-volume
+  namespace: {{ .Values.namespace | default "devstream" }}
+  labels:
+    type: local
+spec:
+  storageClassName: {{ .Values.clamav.persistentStorage.className | default "clamavdb" }}
+  capacity:
+    storage: {{ .Values.clamav.persistentStorage.size }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: {{ .Values.clamav.persistentStorage.nodePath | default "/mnt/clamavdb" }}
+  claimRef:
+    name: clamavdb-claim
+    namespace: {{ .Values.namespace | default "devstream" }}
+{{- end }}
+{{- if .Values.isGke }}
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: {{ .Values.clamav.persistentStorage.className | default "clamavdb" }}
+provisioner: kubernetes.io/gce-pd
+reclaimPolicy: Delete
+parameters:
+  type: pd-standard
+allowVolumeExpansion: true
+volumeBindingMode: Immediate
+{{- end }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: clamavdb-claim
+  namespace: {{ .Values.namespace | default "devstream" }}
+spec:
+  storageClassName: {{ .Values.clamav.persistentStorage.className | default "clamavdb" }}
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.clamav.persistentStorage.size }}
+{{- end }}
+---
+# storage buckets emulator
+{{- if .Values.env.GOOGLE_STORAGE_EMULATED }}
+{{- if .Values.gcloudStorageEmulator.persistent }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.gcloudStorageEmulator.persistentStorage.className | default "gcloud-storage-emulator" }}-volume
+  namespace: {{ .Values.namespace | default "devstream" }}
+  labels:
+    type: local
+spec:
+  storageClassName: {{ .Values.gcloudStorageEmulator.persistentStorage.className | default "gcloud-storage-emulator" }}
+  capacity:
+    storage: {{ .Values.gcloudStorageEmulator.persistentStorage.size }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: {{ .Values.gcloudStorageEmulator.persistentStorage.nodePath | default "/mnt/gcloud-storage-emulator" }}
+  claimRef:
+    name: {{ .Values.gcloudStorageEmulator.persistentStorage.className | default "gcloud-storage-emulator" }}-claim
+    namespace: {{ .Values.namespace | default "devstream" }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.gcloudStorageEmulator.persistentStorage.className | default "gcloud-storage-emulator" }}-claim
+  namespace: {{ .Values.namespace | default "devstream" }}
+spec:
+  storageClassName: {{ .Values.gcloudStorageEmulator.persistentStorage.className | default "gcloud-storage-emulator" }}
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.gcloudStorageEmulator.persistentStorage.size }}
+{{- end }}
+{{- end }}

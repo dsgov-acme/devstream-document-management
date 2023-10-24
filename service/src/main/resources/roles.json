@@ -1,0 +1,17 @@
+{
+  "name": "document-management",
+  "roles": [
+    {
+      "applicationRole": "dm:document-uploader",
+      "name": "Document Uploader",
+      "description": "Can upload documents and download documents they have uploaded.",
+      "group": "document-management"
+    },
+    {
+      "applicationRole": "dm:document-reviewer",
+      "name": "Document Reviewer",
+      "description": "Can download any document.",
+      "group": "document-management"
+    }
+  ]
+}

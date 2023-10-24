@@ -1,0 +1,58 @@
+namespace: "devstream"
+
+postgres:
+  enabled: false
+  namespace: "devstream"
+
+replicaCount: 1
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 50
+  targetMemoryUtilizationPercentage: 80
+
+clamav:
+  persistentStorage:
+    className: "clamavdb"
+    nodePath: "/mnt/clamavdb"
+  database:
+    initPodCleanTimeInSeconds: 60
+    # every minute 36 to meet ClamAV recommendation: https://docs.clamav.net/manual/Usage/Configuration.html#freshclamconf
+    # (configure it for a minute between 3 and 57 and avoiding multiples of 10)
+    hourlyRefreshMinute: 36
+  service:
+    # having 1440 divided by the following number tells how often the checks run in minutes
+    dbChecksPerDay: 48
+    image:
+      pullPolicy: "IfNotPresent"
+      repository: "clamav-service-image"
+      tag: "latest"
+    # liveness and readiness probes configuration
+    probes:
+      initialDelaySeconds: 30
+      periodSeconds: 10
+  updater:
+    image:
+      pullPolicy: "IfNotPresent"
+      repository: "clamav-updater-image"
+      tag: "latest"
+
+documentManagement:
+  image:
+    pullPolicy: "IfNotPresent"
+    repository: "document-management"
+    tag: "latest"
+
+net:
+  applicationPort: 8080
+  servicePort: 80
+  contextPath: "/dm"
+  readinessProbe:
+    path: "/actuator/health"
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 1
+    failureThreshold: 10
