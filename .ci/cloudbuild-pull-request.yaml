@@ -16,8 +16,22 @@ steps:
         #  -Dsonar.host.url=${_SONARQUBE_HOST} \
         #  -Dsonar.qualitygate.wait=true \
         #  clean build jacocoTestReport sonarqube
-        ./gradlew clean build 
+        ./gradlew clean build || echo "build failed but continuing..." > /workspace/error.txt
     secretEnv: ['SONARQUBE_TOKEN']
+
+  - id: 'Conditional upload of build error reports to GCS...'
+    name: 'gcr.io/cloud-builders/gsutil'
+    entrypoint: bash
+    args:
+      - "-c"
+      - |
+        if [[ -f /workspace/error.txt ]]; then
+          echo "Uploading build error reports to GCS..."
+          gsutil -m cp -r /workspace/service/build/reports/* gs://${_ARTIFACT_BUCKET_NAME}/cloudbuild-logs/app-${_SERVICE_NAME}-pull-request-trigger
+          exit 1
+        else
+         echo "No build failure; continuing to next step..."
+        fi
 
   - id: 'Skaffold Render - Minikube'
     name: "${_GAR_BUILDER_URL}/helm"

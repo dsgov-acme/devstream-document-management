@@ -70,23 +70,23 @@ env:
   GOOGLE_STORAGE_EMULATED: true
   PUBSUB_EMULATOR_HOST: "pubsub-emulator-service:8085" # set actual "host:port" to enable or false to disable
   PUBSUB_ENABLED: true
-  DOCUMENT_QUALITY_PROCESSOR_ID: "8ee6e621c0eb921"
-  DOCUMENT_ID_PROOFING_PROCESSOR_ID: "b797b0ca67e0582b"
+  DOCUMENT_QUALITY_PROCESSOR_ID: "1d7280c2bffbaa98"
+  DOCUMENT_ID_PROOFING_PROCESSOR_ID: "fafa19b62cedb51e"
   # end of infrastructure selector configs
   ALLOWED_ORIGINS: "http://localhost:4200, http://localhost:4201, http://public.devstream.test, http://agency.devstream.test"
   DB_CONNECTION_URL: "jdbc:postgresql://document-management-postgres:5432/local-document-management-db"
   DB_USERNAME: "root"
   DB_PASSWORD: "root"
-  GCP_PROJECT_ID: "devstream-dev"
+  GCP_PROJECT_ID: "devstream-dev-2e76"
   CERBOS_URI: "127.0.0.1:3592"
-  SELF_SIGN_PUBLIC_KEY: "${sm://projects/devstream-dev/secrets/devstream-self-signed-token-public-key/versions/latest}"
-  SELF_SIGN_PRIVATE_KEY: "${sm://projects/devstream-dev/secrets/devstream-self-signed-token-private-key/versions/latest}"
+  SELF_SIGN_PUBLIC_KEY: "${sm://projects/devstream-dev-2e76/secrets/devstream-self-signed-token-public-key/versions/latest}"
+  SELF_SIGN_PRIVATE_KEY: "${sm://projects/devstream-dev-2e76/secrets/devstream-self-signed-token-private-key/versions/latest}"
   USER_MANAGEMENT_BASE_URL: "http://user-management/um"
-  PUBSUB_CLAMAV_TOPIC: "projects/devstream-dev/topics/NEW_FILE_UPLOAD"
-  PUBSUB_DOCUMENT_PROCESSING_TOPIC: "projects/devstream-dev/topics/DOCUMENT_PROCESSING_REQUESTS"
-  PUBSUB_DOCUMENT_PROCESSING_RESULT_TOPIC: "projects/devstream-dev/topics/DOCUMENT_PROCESSING_RESULTS"
-  PUBSUB_CLAMAV_SUBSCRIPTION: "projects/devstream-dev/subscriptions/NEW_FILE_UPLOAD_SUBSCRIPTION"
-  PUBSUB_DOCUMENT_PROCESSING_SUBSCRIPTION: "projects/devstream-dev/subscriptions/DOCUMENT_PROCESSING_SUBSCRIPTION"
+  PUBSUB_CLAMAV_TOPIC: "projects/devstream-dev-2e76/topics/NEW_FILE_UPLOAD"
+  PUBSUB_DOCUMENT_PROCESSING_TOPIC: "projects/devstream-dev-2e76/topics/DOCUMENT_PROCESSING_REQUESTS"
+  PUBSUB_DOCUMENT_PROCESSING_RESULT_TOPIC: "projects/devstream-dev-2e76/topics/DOCUMENT_PROCESSING_RESULTS"
+  PUBSUB_CLAMAV_SUBSCRIPTION: "projects/devstream-dev-2e76/subscriptions/NEW_FILE_UPLOAD_SUBSCRIPTION"
+  PUBSUB_DOCUMENT_PROCESSING_SUBSCRIPTION: "projects/devstream-dev-2e76/subscriptions/DOCUMENT_PROCESSING_SUBSCRIPTION"
   UNSCANNED_BUCKET_NAME: devstream-dev-unscanned
   QUARANTINED_BUCKET_NAME: devstream-dev-quarantined
   SCANNED_BUCKET_NAME: devstream-dev-scanned

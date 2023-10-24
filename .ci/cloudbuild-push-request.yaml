@@ -36,7 +36,7 @@ steps:
     args:
       - "-c"
       - |
-        gcloud deploy releases create "${REPO_NAME}--${SHORT_SHA}" \
+        gcloud deploy releases create "${REPO_NAME}-${SHORT_SHA}" \
           --project=$PROJECT_ID \
           --region=${_DEPLOY_REGION} \
           --delivery-pipeline=${REPO_NAME} \

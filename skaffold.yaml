@@ -6,10 +6,10 @@ profiles:
   - name: local
     build:
       googleCloudBuild:
-        projectId: devstream-services
-        gradleImage: gradle:7.6-jdk11-alpine
+        projectId: devstream-shared-services-4179
+        gradleImage: gradle:8.2.1-jdk17-alpine
       artifacts:
-      - image: us-east4-docker.pkg.dev/devstream-services/application/devstream-document-management
+      - image: us-east4-docker.pkg.dev/devstream-shared-services-4179/application/devstream-document-management
         jib:
           type: gradle
           project: service
@@ -17,12 +17,12 @@ profiles:
             - "-Djib.container.environment=SPRING_PROFILES_ACTIVE=cloud"
 
       # Need to specify container registry; otherwise it defaults to docker.io
-      - image: us-east4-docker.pkg.dev/devstream-services/application/clamdb-updater-image
+      - image: us-east4-docker.pkg.dev/devstream-shared-services-4179/application/clamdb-updater-image
         docker:
           dockerfile: docker/cvdupdater/Dockerfile
 
       # Need to specify container registry; otherwise it defaults to docker.io
-      - image: us-east4-docker.pkg.dev/devstream-services/application/clamav-service-image
+      - image: us-east4-docker.pkg.dev/devstream-shared-services-4179/application/clamav-service-image
         docker:
           dockerfile: docker/clamavservice/Dockerfile
     deploy:
@@ -35,12 +35,12 @@ profiles:
           chartPath: helm/document-management
           # Ref: https://skaffold.dev/docs/deployers/helm/#sanitizing-the-artifact-name-from-invalid-go-template-characters
           setValueTemplates:
-            documentManagement.image.repository: "{{.IMAGE_REPO_us_east4_docker_pkg_dev_devstream_services_application_devstream_document_management}}"
-            documentManagement.image.tag: "{{.IMAGE_TAG_us_east4_docker_pkg_dev_devstream_services_application_devstream_document_management}}@{{.IMAGE_DIGEST_us_east4_docker_pkg_dev_devstream_services_application_devstream_document_management}}"
-            clamav.service.image.repository: "{{.IMAGE_REPO_us_east4_docker_pkg_dev_devstream_services_application_clamav_service_image}}"
-            clamav.service.image.tag: "{{.IMAGE_TAG_us_east4_docker_pkg_dev_devstream_services_application_clamav_service_image}}@{{.IMAGE_DIGEST_us_east4_docker_pkg_dev_devstream_services_application_clamav_service_image}}"
-            clamav.updater.image.repository: "{{.IMAGE_REPO_us_east4_docker_pkg_dev_devstream_services_application_clamdb_updater_image}}"
-            clamav.updater.image.tag: "{{.IMAGE_TAG_us_east4_docker_pkg_dev_devstream_services_application_clamdb_updater_image}}@{{.IMAGE_DIGEST_us_east4_docker_pkg_dev_devstream_services_application_clamdb_updater_image}}"
+            documentManagement.image.repository: "{{.IMAGE_REPO_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_devstream_document_management}}"
+            documentManagement.image.tag: "{{.IMAGE_TAG_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_devstream_document_management}}@{{.IMAGE_DIGEST_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_devstream_document_management}}"
+            clamav.service.image.repository: "{{.IMAGE_REPO_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_clamav_service_image}}"
+            clamav.service.image.tag: "{{.IMAGE_TAG_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_clamav_service_image}}@{{.IMAGE_DIGEST_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_clamav_service_image}}"
+            clamav.updater.image.repository: "{{.IMAGE_REPO_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_clamdb_updater_image}}"
+            clamav.updater.image.tag: "{{.IMAGE_TAG_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_clamdb_updater_image}}@{{.IMAGE_DIGEST_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_clamdb_updater_image}}"
           setValues:
             environment: local
           valuesFiles:
@@ -142,10 +142,10 @@ profiles:
   - name: dev
     build:
       googleCloudBuild:
-        projectId: devstream-services
-        gradleImage: gradle:7.6-jdk11-alpine
+        projectId: devstream-shared-services-4179
+        gradleImage: gradle:8.2.1-jdk17-alpine
       artifacts:
-      - image: us-east4-docker.pkg.dev/devstream-services/application/devstream-document-management
+      - image: us-east4-docker.pkg.dev/devstream-shared-services-4179/application/devstream-document-management
         jib:
           type: gradle
           project: service
@@ -153,12 +153,12 @@ profiles:
             - "-Djib.container.environment=SPRING_PROFILES_ACTIVE=cloud"
 
       # Need to specify container registry; otherwise it defaults to docker.io
-      - image: us-east4-docker.pkg.dev/devstream-services/application/clamdb-updater-image
+      - image: us-east4-docker.pkg.dev/devstream-shared-services-4179/application/clamdb-updater-image
         docker:
           dockerfile: docker/cvdupdater/Dockerfile
 
       # Need to specify container registry; otherwise it defaults to docker.io
-      - image: us-east4-docker.pkg.dev/devstream-services/application/clamav-service-image
+      - image: us-east4-docker.pkg.dev/devstream-shared-services-4179/application/clamav-service-image
         docker:
           dockerfile: docker/clamavservice/Dockerfile
     deploy:
@@ -171,12 +171,12 @@ profiles:
           chartPath: helm/document-management
           # Ref: https://skaffold.dev/docs/deployers/helm/#sanitizing-the-artifact-name-from-invalid-go-template-characters
           setValueTemplates:
-            documentManagement.image.repository: "{{.IMAGE_REPO_us_east4_docker_pkg_dev_devstream_services_application_devstream_document_management}}"
-            documentManagement.image.tag: "{{.IMAGE_TAG_us_east4_docker_pkg_dev_devstream_services_application_devstream_document_management}}@{{.IMAGE_DIGEST_us_east4_docker_pkg_dev_devstream_services_application_devstream_document_management}}"
-            clamav.service.image.repository: "{{.IMAGE_REPO_us_east4_docker_pkg_dev_devstream_services_application_clamav_service_image}}"
-            clamav.service.image.tag: "{{.IMAGE_TAG_us_east4_docker_pkg_dev_devstream_services_application_clamav_service_image}}@{{.IMAGE_DIGEST_us_east4_docker_pkg_dev_devstream_services_application_clamav_service_image}}"
-            clamav.updater.image.repository: "{{.IMAGE_REPO_us_east4_docker_pkg_dev_devstream_services_application_clamdb_updater_image}}"
-            clamav.updater.image.tag: "{{.IMAGE_TAG_us_east4_docker_pkg_dev_devstream_services_application_clamdb_updater_image}}@{{.IMAGE_DIGEST_us_east4_docker_pkg_dev_devstream_services_application_clamdb_updater_image}}"
+            documentManagement.image.repository: "{{.IMAGE_REPO_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_devstream_document_management}}"
+            documentManagement.image.tag: "{{.IMAGE_TAG_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_devstream_document_management}}@{{.IMAGE_DIGEST_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_devstream_document_management}}"
+            clamav.service.image.repository: "{{.IMAGE_REPO_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_clamav_service_image}}"
+            clamav.service.image.tag: "{{.IMAGE_TAG_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_clamav_service_image}}@{{.IMAGE_DIGEST_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_clamav_service_image}}"
+            clamav.updater.image.repository: "{{.IMAGE_REPO_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_clamdb_updater_image}}"
+            clamav.updater.image.tag: "{{.IMAGE_TAG_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_clamdb_updater_image}}@{{.IMAGE_DIGEST_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_clamdb_updater_image}}"
           setValues:
             environment: dev
           valuesFiles:
@@ -185,10 +185,10 @@ profiles:
   - name: staging
     build:
       googleCloudBuild:
-        projectId: devstream-services
-        gradleImage: gradle:7.6-jdk11-alpine
+        projectId: devstream-shared-services-4179
+        gradleImage: gradle:8.2.1-jdk17-alpine
       artifacts:
-      - image: us-east4-docker.pkg.dev/devstream-services/application/devstream-document-management
+      - image: us-east4-docker.pkg.dev/devstream-shared-services-4179/application/devstream-document-management
         jib:
           type: gradle
           project: service
@@ -196,12 +196,12 @@ profiles:
             - "-Djib.container.environment=SPRING_PROFILES_ACTIVE=cloud"
 
       # Need to specify container registry; otherwise it defaults to docker.io
-      - image: us-east4-docker.pkg.dev/devstream-services/application/clamdb-updater-image
+      - image: us-east4-docker.pkg.dev/devstream-shared-services-4179/application/clamdb-updater-image
         docker:
           dockerfile: docker/cvdupdater/Dockerfile
 
       # Need to specify container registry; otherwise it defaults to docker.io
-      - image: us-east4-docker.pkg.dev/devstream-services/application/clamav-service-image
+      - image: us-east4-docker.pkg.dev/devstream-shared-services-4179/application/clamav-service-image
         docker:
           dockerfile: docker/clamavservice/Dockerfile
     deploy:
@@ -214,12 +214,12 @@ profiles:
           chartPath: helm/document-management
           # Ref: https://skaffold.dev/docs/deployers/helm/#sanitizing-the-artifact-name-from-invalid-go-template-characters
           setValueTemplates:
-            documentManagement.image.repository: "{{.IMAGE_REPO_us_east4_docker_pkg_dev_devstream_services_application_devstream_document_management}}"
-            documentManagement.image.tag: "{{.IMAGE_TAG_us_east4_docker_pkg_dev_devstream_services_application_devstream_document_management}}@{{.IMAGE_DIGEST_us_east4_docker_pkg_dev_devstream_services_application_devstream_document_management}}"
-            clamav.service.image.repository: "{{.IMAGE_REPO_us_east4_docker_pkg_dev_devstream_services_application_clamav_service_image}}"
-            clamav.service.image.tag: "{{.IMAGE_TAG_us_east4_docker_pkg_dev_devstream_services_application_clamav_service_image}}@{{.IMAGE_DIGEST_us_east4_docker_pkg_dev_devstream_services_application_clamav_service_image}}"
-            clamav.updater.image.repository: "{{.IMAGE_REPO_us_east4_docker_pkg_dev_devstream_services_application_clamdb_updater_image}}"
-            clamav.updater.image.tag: "{{.IMAGE_TAG_us_east4_docker_pkg_dev_devstream_services_application_clamdb_updater_image}}@{{.IMAGE_DIGEST_us_east4_docker_pkg_dev_devstream_services_application_clamdb_updater_image}}"
+            documentManagement.image.repository: "{{.IMAGE_REPO_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_devstream_document_management}}"
+            documentManagement.image.tag: "{{.IMAGE_TAG_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_devstream_document_management}}@{{.IMAGE_DIGEST_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_devstream_document_management}}"
+            clamav.service.image.repository: "{{.IMAGE_REPO_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_clamav_service_image}}"
+            clamav.service.image.tag: "{{.IMAGE_TAG_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_clamav_service_image}}@{{.IMAGE_DIGEST_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_clamav_service_image}}"
+            clamav.updater.image.repository: "{{.IMAGE_REPO_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_clamdb_updater_image}}"
+            clamav.updater.image.tag: "{{.IMAGE_TAG_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_clamdb_updater_image}}@{{.IMAGE_DIGEST_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_clamdb_updater_image}}"
           setValues:
             environment: staging
           valuesFiles:
@@ -228,10 +228,10 @@ profiles:
   - name: prod
     build:
       googleCloudBuild:
-        projectId: devstream-services
-        gradleImage: gradle:7.6-jdk11-alpine
+        projectId: devstream-shared-services-4179
+        gradleImage: gradle:8.2.1-jdk17-alpine
       artifacts:
-      - image: us-east4-docker.pkg.dev/devstream-services/application/devstream-document-management
+      - image: us-east4-docker.pkg.dev/devstream-shared-services-4179/application/devstream-document-management
         jib:
           type: gradle
           project: service
@@ -239,12 +239,12 @@ profiles:
             - "-Djib.container.environment=SPRING_PROFILES_ACTIVE=cloud"
 
       # Need to specify container registry; otherwise it defaults to docker.io
-      - image: us-east4-docker.pkg.dev/devstream-services/application/clamdb-updater-image
+      - image: us-east4-docker.pkg.dev/devstream-shared-services-4179/application/clamdb-updater-image
         docker:
           dockerfile: docker/cvdupdater/Dockerfile
 
       # Need to specify container registry; otherwise it defaults to docker.io
-      - image: us-east4-docker.pkg.dev/devstream-services/application/clamav-service-image
+      - image: us-east4-docker.pkg.dev/devstream-shared-services-4179/application/clamav-service-image
         docker:
           dockerfile: docker/clamavservice/Dockerfile
     deploy:
@@ -257,12 +257,12 @@ profiles:
           chartPath: helm/document-management
           # Ref: https://skaffold.dev/docs/deployers/helm/#sanitizing-the-artifact-name-from-invalid-go-template-characters
           setValueTemplates:
-            documentManagement.image.repository: "{{.IMAGE_REPO_us_east4_docker_pkg_dev_devstream_services_application_devstream_document_management}}"
-            documentManagement.image.tag: "{{.IMAGE_TAG_us_east4_docker_pkg_dev_devstream_services_application_devstream_document_management}}@{{.IMAGE_DIGEST_us_east4_docker_pkg_dev_devstream_services_application_devstream_document_management}}"
-            clamav.service.image.repository: "{{.IMAGE_REPO_us_east4_docker_pkg_dev_devstream_services_application_clamav_service_image}}"
-            clamav.service.image.tag: "{{.IMAGE_TAG_us_east4_docker_pkg_dev_devstream_services_application_clamav_service_image}}@{{.IMAGE_DIGEST_us_east4_docker_pkg_dev_devstream_services_application_clamav_service_image}}"
-            clamav.updater.image.repository: "{{.IMAGE_REPO_us_east4_docker_pkg_dev_devstream_services_application_clamdb_updater_image}}"
-            clamav.updater.image.tag: "{{.IMAGE_TAG_us_east4_docker_pkg_dev_devstream_services_application_clamdb_updater_image}}@{{.IMAGE_DIGEST_us_east4_docker_pkg_dev_devstream_services_application_clamdb_updater_image}}"
+            documentManagement.image.repository: "{{.IMAGE_REPO_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_devstream_document_management}}"
+            documentManagement.image.tag: "{{.IMAGE_TAG_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_devstream_document_management}}@{{.IMAGE_DIGEST_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_devstream_document_management}}"
+            clamav.service.image.repository: "{{.IMAGE_REPO_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_clamav_service_image}}"
+            clamav.service.image.tag: "{{.IMAGE_TAG_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_clamav_service_image}}@{{.IMAGE_DIGEST_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_clamav_service_image}}"
+            clamav.updater.image.repository: "{{.IMAGE_REPO_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_clamdb_updater_image}}"
+            clamav.updater.image.tag: "{{.IMAGE_TAG_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_clamdb_updater_image}}@{{.IMAGE_DIGEST_us_east4_docker_pkg_dev_devstream_shared_services_4179_application_clamdb_updater_image}}"
           setValues:
             environment: prod
           valuesFiles:
