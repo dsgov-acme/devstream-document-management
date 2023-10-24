@@ -1,0 +1,267 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Values.namespace | default "devstream" }}
+  labels:
+    {{- include "document-management.labels" . | nindent 4 }}
+spec:
+  {{- if or (not .Values.autoscaling.enabled) (.Values.postgres.enabled) }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "document-management.selectorLabels" . | nindent 6 }}
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        roll: {{ randAlphaNum 5 | quote }}
+        sidecar.istio.io/rewriteAppHTTPProbers: "true"
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      labels:
+        {{- include "document-management.selectorLabels" . | nindent 8 }}
+    spec:
+      # Set the serviceAccountName in non-local Postgres situations
+      {{- if .Values.isGke }}
+      serviceAccountName: {{ .Values.serviceAccountName }}
+      {{- end }}
+      containers:
+        {{- if .Values.isGke }}
+        # Utilize Cloud SQL Proxy Sidecar
+        {{- include "document-management.cloudsql.sidecar" . | nindent 8 }}
+        {{- end }}
+        - name: {{ .Values.environment }}-{{ .Release.Name }}
+          image: "{{ .Values.documentManagement.image.repository }}:{{ .Values.documentManagement.image.tag }}"
+          imagePullPolicy: {{ .Values.documentManagement.image.pullPolicy }}
+          env:
+            - name: ENV
+              value: {{ default "dev" .Values.environment | quote }}
+            {{- include "env.tpl" .Values.env | indent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ default "8080" .Values.net.applicationPort }}
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.net.contextPath }}{{ .Values.net.readinessProbe.path }}
+              port: {{ .Values.net.applicationPort }}
+              scheme: HTTP
+            periodSeconds: {{ .Values.net.readinessProbe.periodSeconds }}
+            {{- if .Values.isGke }}
+            initialDelaySeconds: {{ .Values.net.readinessProbe.initialDelaySeconds }}
+            successThreshold: {{ .Values.net.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.net.readinessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.net.readinessProbe.timeoutSeconds }}
+            {{- end }}
+          volumeMounts:
+            # Mount the shared volume containing the socket
+            - name: sock
+              mountPath: /sock
+          resources:
+            requests:
+              cpu: {{ .Values.resources.documentManagement.requests.cpu }}
+              memory: {{ .Values.resources.documentManagement.requests.memory }}
+            limits:
+              memory: {{ .Values.resources.documentManagement.limits.memory }}
+        {{- if .Values.env.CLAMAV_ENABLED }}
+        - name: clamav-service
+          image: "{{ .Values.clamav.service.image.repository }}:{{ .Values.clamav.service.image.tag }}"
+          imagePullPolicy: {{ .Values.clamav.service.image.pullPolicy }}
+          readinessProbe:
+            tcpSocket:
+              port: 3310
+            {{- toYaml .Values.clamav.service.probes | nindent 12 }}
+          livenessProbe:
+            tcpSocket:
+              port: 3310
+            {{- toYaml .Values.clamav.service.probes | nindent 12 }}
+          env:
+          - name: FRESHCLAM_CHECKS
+            value: {{ .Values.clamav.service.dbChecksPerDay | quote }}
+          resources:
+            requests:
+              cpu: {{ .Values.resources.clamavService.requests.cpu }}
+              memory: {{ .Values.resources.clamavService.requests.memory }}
+            limits:
+              memory: {{ .Values.resources.clamavService.limits.memory }}
+        {{- end }}
+        - name: cerbos
+          image: "ghcr.io/cerbos/cerbos:0.24.0"
+          imagePullPolicy: IfNotPresent
+          args:
+            - "server"
+            - "--config=/config/config.yaml"
+            - "--log-level=INFO"
+          ports:
+            - containerPort: 3592
+              protocol: TCP
+          volumeMounts:
+            # Mount the shared volume containing the socket
+            - name: sock
+              mountPath: /sock
+            - name: config
+              mountPath: /config
+              readOnly: true
+            - name: policies
+              mountPath: /policies
+          resources:
+            requests:
+              cpu: {{ .Values.resources.cerbos.requests.cpu }}
+              memory: {{ .Values.resources.cerbos.requests.memory }}
+            limits:
+              memory: {{ .Values.resources.cerbos.limits.memory }}
+      {{- if .Values.isGke }}
+      # Initialize CloudSQL Proxy Sidecar with connection string
+      {{- include "document-management.cloudsql.initContainer" . | nindent 6 }}
+      {{- end }}
+      volumes:
+        {{- if .Values.isGke }}
+        {{- include "document-management.cloudsql.volume" . | nindent 8 }}
+        {{- end }}
+        # Shared volume containing the socket.
+        - name: sock
+          emptyDir: { }
+        - name: config
+          configMap:
+            name: document-management-cerbos-config
+        - name: policies
+          configMap:
+            name: document-management-cerbos-policies
+---
+{{- if .Values.env.CLAMAV_ENABLED }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clamav-mirror
+  namespace: {{ .Values.namespace | default "devstream" }}
+  labels:
+    app: clamav-mirror-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clamav-mirror-nginx
+  template:
+    metadata:
+      labels:
+        app: clamav-mirror-nginx
+    spec:
+      containers:
+        - name: clamav-mirror
+          image: nginx:stable
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP          
+          volumeMounts:
+          - mountPath: /usr/share/clamdb
+            name: clamdb-dir
+          - mountPath: /etc/nginx/conf.d
+            name: clamav-nginx-conf
+          resources:
+            requests:
+              cpu: {{ .Values.resources.clamavMirror.requests.cpu }}
+              memory: {{ .Values.resources.clamavMirror.requests.memory }}
+            limits:
+              memory: {{ .Values.resources.clamavMirror.limits.memory }}
+      volumes:
+        - name: clamdb-dir
+          persistentVolumeClaim:
+            claimName: clamavdb-claim
+        - name: clamav-nginx-conf
+          configMap:
+            name: clamav-nginx
+{{- end }}
+---
+{{- if .Values.env.PUBSUB_ENABLED }}
+{{- if .Values.env.PUBSUB_EMULATOR_HOST }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pubsub-emulator
+  namespace: {{ .Values.namespace | default "devstream" }}
+  labels:
+    app: gcloud-pubsub-emulator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gcloud-pubsub-emulator
+  template:
+    metadata:
+      labels:
+        app: gcloud-pubsub-emulator
+    spec:
+      containers:
+        - name: pubsub-emulator
+          image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+          command:
+            - gcloud
+            - beta
+            - emulators
+            - pubsub
+            - start
+            - --host-port=0.0.0.0:{{ (split ":" .Values.env.PUBSUB_EMULATOR_HOST)._1 }}
+          ports:
+            - name: http
+              containerPort: {{ (split ":" .Values.env.PUBSUB_EMULATOR_HOST)._1 }}
+              protocol: TCP
+          resources:
+            requests:
+              cpu: {{ .Values.resources.pubSubEmulator.requests.cpu }}
+              memory: {{ .Values.resources.pubSubEmulator.requests.memory }}
+            limits:
+              memory: {{ .Values.resources.pubSubEmulator.limits.memory }}
+{{- end }}
+{{- end }}
+---
+{{- if .Values.env.GOOGLE_STORAGE_EMULATED }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gcloud-storage-emulator
+  namespace: {{ .Values.namespace | default "devstream" }}
+  labels:
+    app: gcloud-storage-emulator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gcloud-storage-emulator
+  template:
+    metadata:
+      labels:
+        app: gcloud-storage-emulator
+    spec:
+      containers:
+        - name: gcloud-storage-emulator
+          image: fsouza/fake-gcs-server:latest
+          args: ["-scheme", "http", "-event.pubsub-project-id", {{ .Values.env.GCP_PROJECT_ID }}, "-event.pubsub-topic", {{ (split "/" .Values.env.PUBSUB_CLAMAV_TOPIC)._3 }} ]
+          env:
+            - name: PUBSUB_EMULATOR_HOST
+              value: {{ .Values.env.PUBSUB_EMULATOR_HOST }}
+          ports:
+            - name: http
+              containerPort: {{ (split ":" .Values.env.GCLOUD_STORAGE_EMULATOR_HOST)._1 }}
+              protocol: TCP
+          resources:
+            requests:
+              cpu: {{ .Values.resources.gcloudStorageEmulator.requests.cpu }}
+              memory: {{ .Values.resources.gcloudStorageEmulator.requests.memory }}
+            limits:
+              memory: {{ .Values.resources.gcloudStorageEmulator.limits.memory }}
+      {{- if .Values.gcloudStorageEmulator.persistent }}
+          volumeMounts:
+            - name: buckets-dir
+              mountPath: /data
+      volumes:
+        - name: buckets-dir
+          persistentVolumeClaim:
+            claimName: {{ .Values.gcloudStorageEmulator.persistentStorage.className | default "gcloud-storage-emulator" }}-claim
+      {{- end }}
+{{- end }}

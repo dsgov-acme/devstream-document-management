@@ -1,0 +1,89 @@
+environment: "prod"
+serviceAccountName: devstream-sa
+createIngress: false
+isGke: true
+
+resources:
+  documentManagement:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 1024Mi
+  cerbos:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 256Mi
+  clamavService:
+    requests:
+      cpu: 100m
+      memory: 2Gi
+    limits:
+      memory: 2Gi
+  clamavMirror:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+clamav:
+  persistentStorage:
+    size: 3Gi
+
+net:
+  host: "api-prod.devstream.dsgov.demo.nuvalence.io"
+
+env:
+  # start infrastructure selector configs
+  CLAMAV_ENABLED: true
+  DOCUMENT_PROCESSING_ENABLED: true
+  GOOGLE_STORAGE_EMULATED: false
+  PUBSUB_EMULATOR_HOST: false # set actual "host:port" to enable or false to disable
+  PUBSUB_ENABLED: true
+  DOCUMENT_QUALITY_PROCESSOR_ID: "8ee6e621c0eb921"
+  DOCUMENT_ID_PROOFING_PROCESSOR_ID: "b797b0ca67e0582b"
+  # end of infrastructure selector configs
+  ALLOWED_ORIGINS: "http://localhost:4200, http://localhost:4201, https://api-prod.devstream.dsgov.demo.nuvalence.io, https://agency-prod.devstream.dsgov.demo.nuvalence.io, https://public-prod.devstream.dsgov.demo.nuvalence.io"
+  GCP_PROJECT_ID: "devstream-prod"
+  CERBOS_URI: "127.0.0.1:3592"
+  DB_CONNECTION_URL: "jdbc:postgresql://127.0.0.1:5432/devstream-prod-document-management-db"
+  DB_USERNAME: "${sm://projects/devstream-prod/secrets/devstream-prod-db-user/versions/latest}"
+  DB_PASSWORD: "${sm://projects/devstream-prod/secrets/devstream-prod-db-pass/versions/latest}"
+  SELF_SIGN_PUBLIC_KEY: "${sm://projects/devstream-prod/secrets/devstream-self-signed-token-public-key/versions/latest}"
+  SELF_SIGN_PRIVATE_KEY: "${sm://projects/devstream-prod/secrets/devstream-self-signed-token-private-key/versions/latest}"
+  USER_MANAGEMENT_BASE_URL: "http://devstream-user-management/um"
+  PUBSUB_CLAMAV_TOPIC: "projects/devstream-prod/topics/NEW_FILE_UPLOAD"
+  PUBSUB_DOCUMENT_PROCESSING_TOPIC: "projects/devstream-prod/topics/DOCUMENT_PROCESSING_REQUESTS"
+  PUBSUB_DOCUMENT_PROCESSING_RESULT_TOPIC: "projects/devstream-prod/topics/DOCUMENT_PROCESSING_RESULTS"
+  PUBSUB_CLAMAV_SUBSCRIPTION: "projects/devstream-prod/subscriptions/NEW_FILE_UPLOAD_SUBSCRIPTION"
+  PUBSUB_DOCUMENT_PROCESSING_SUBSCRIPTION: "projects/devstream-prod/subscriptions/DOCUMENT_PROCESSING_SUBSCRIPTION"
+  UNSCANNED_BUCKET_NAME: devstream-prod-unscanned
+  QUARANTINED_BUCKET_NAME: devstream-prod-quarantined
+  SCANNED_BUCKET_NAME: devstream-prod-scanned
+  STORAGE_PROVIDER: "google"
+  ALLOWED_MIME_TYPES:
+    - "image/gif"
+    - "image/jpeg"
+    - "image/png"
+    - "image/heic"
+    - "application/pdf"
+    - "text/csv"
+    - "application/msword"
+    - "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    - "application/rtf"
+    - "text/plain"
+    - "application/vnd.ms-excel"
+    - "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    - "application/vnd.ms-xpsdocument"
+    - "application/vnd.wordperfect"
+    - "application/vnd.oasis.opendocument.text"
+    - "image/svg+xml"
+    - "image/tiff"
+  ALLOWED_OCTET_STREAM_EXTENSIONS:
+    - ".mpa"
+  TOKEN_PRIVATE_KEY_SECRET: "devstream-self-signed-token-private-key"
+  TOKEN_ISSUER: "devstream"
+  TOKEN_PRIVATE_KEY_VERSION: "latest"

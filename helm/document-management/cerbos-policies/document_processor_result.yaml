@@ -1,0 +1,13 @@
+apiVersion: api.cerbos.dev/v1
+resourcePolicy:
+  version: "default"
+  resource: document_processor_result
+  importDerivedRoles:
+    - document-roles
+  rules:
+    - actions: ["view", "create"]
+      roles:
+        - document-reviewer
+      derivedRoles:
+        - self
+      effect: EFFECT_ALLOW

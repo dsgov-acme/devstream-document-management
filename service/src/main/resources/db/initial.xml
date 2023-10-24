@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20230424_001_initial_db" author="deibys.quintero" >
+        <createTable tableName="document">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true"
+                             primaryKeyName="pk_document_id"
+                             nullable="false"/>
+            </column>
+            <column name="filename" type="varchar(255)">
+                <constraints nullable="false"  />
+            </column>
+            <column name="status" type="varchar(25)">
+                <constraints nullable="false"  />
+            </column>
+            <column name="uploaded_by" type="varchar(255)" />
+        </createTable>
+        <createTable tableName="document_processor_result">
+            <column name="process_id" type="varchar(55)">
+                <constraints primaryKey="true"
+                             primaryKeyName="pk_document_processor_result_id"
+                             nullable="false"/>
+            </column>
+            <column name="document_id" type="uuid">
+                <constraints nullable="false"  />
+            </column>
+            <column name="filename" type="varchar(255)">
+                <constraints nullable="false"  />
+            </column>
+            <column name="status" type="varchar(25)">
+                <constraints nullable="false"  />
+            </column>
+            <column name="results" type="jsonb" />
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20230517_002_adjustments" author="jsuarez">
+        <dropColumn columnName="status" tableName="document"/>
+
+        <addForeignKeyConstraint baseTableName="document_processor_result"
+                                 baseColumnNames="document_id"
+                                 constraintName="fk_document_processor_result_document"
+                                 referencedTableName="document"
+                                 referencedColumnNames="id"/>
+
+        <dropColumn columnName="filename" tableName="document_processor_result"/>
+    </changeSet>
+
+    <changeSet id="20230623_003_adjustments_add_timestamp_column" author="jsuarez">
+        <addColumn tableName="document_processor_result">
+            <column name="timestamp" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </addColumn>
+        <update tableName="document_processor_result">
+            <column name="timestamp" valueDate="CURRENT_TIMESTAMP"/>
+        </update>
+    </changeSet>
+
+    <changeSet id="20230623_004_adjustments_add_not_null_constraint" author="jsuarez">
+        <addNotNullConstraint tableName="document_processor_result" columnName="timestamp" columnDataType="DATETIME"/>
+    </changeSet>
+
+    <changeSet id="20230626_005_adjustments_document_processor_result" author="jsuarez">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="document_processor_result" columnName="process_id"/>
+        </preConditions>
+        <delete tableName="document_processor_result"/>
+        <dropPrimaryKey tableName="document_processor_result" constraintName="pk_document_processor_result_id"/>
+        <renameColumn tableName="document_processor_result" oldColumnName="process_id" newColumnName="processor_id"/>
+        <modifyDataType tableName="document_processor_result" columnName="processor_id" newDataType="varchar(255)"/>
+        <addPrimaryKey tableName="document_processor_result" columnNames="processor_id,document_id" constraintName="pk_document_processor_result_id"/>
+    </changeSet>
+
+    <changeSet id="20230627_006_modify_result_column" author="jsuarez">
+        <renameColumn tableName="document_processor_result" oldColumnName="results" newColumnName="result"/>
+    </changeSet>
+</databaseChangeLog>

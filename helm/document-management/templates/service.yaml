@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Values.namespace | default "devstream" }}
+  # We only want this annotation in GKE; not in Minikube
+  {{- if .Values.isGke }}
+  annotations:
+    cloud.google.com/neg: '{"ingress": true}' # Creates a Network Endpoint Group (NEG) after an Ingress is created
+  {{- end }}
+spec:
+  selector:
+    {{- include "document-management.selectorLabels" . | nindent 4}}
+  ports:
+    - protocol: TCP
+      port: {{ default "80" .Values.net.servicePort }}
+      targetPort: {{ default "8080" .Values.net.applicationPort }}
+  sessionAffinity: None
+  type: NodePort
+---
+{{- if .Values.env.CLAMAV_ENABLED }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: clamav-mirror-service
+  namespace: {{ .Values.namespace | default "devstream" }}
+spec:
+  selector:
+    app: clamav-mirror-nginx
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  sessionAffinity: None
+  type: NodePort
+{{- end }}
+---
+{{- if .Values.env.PUBSUB_ENABLED }}
+{{- if .Values.env.PUBSUB_EMULATOR_HOST }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ (split ":" .Values.env.PUBSUB_EMULATOR_HOST)._0 }}
+  namespace: {{ .Values.namespace | default "devstream" }}
+spec:
+  selector:
+    app: gcloud-pubsub-emulator
+  ports:
+    - protocol: TCP
+      port: {{ (split ":" .Values.env.PUBSUB_EMULATOR_HOST)._1 }}
+      targetPort: {{ (split ":" .Values.env.PUBSUB_EMULATOR_HOST)._1 }}
+  sessionAffinity: None
+  type: NodePort
+{{- end }}
+{{- end }}
+---
+{{- if .Values.env.GOOGLE_STORAGE_EMULATED }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ (split ":" .Values.env.GCLOUD_STORAGE_EMULATOR_HOST)._0 }}
+  namespace: {{ .Values.namespace | default "devstream" }}
+spec:
+  selector:
+    app: gcloud-storage-emulator
+  ports:
+    - protocol: TCP
+      port: {{ (split ":" .Values.env.GCLOUD_STORAGE_EMULATOR_HOST)._1 }}
+      targetPort: {{ (split ":" .Values.env.GCLOUD_STORAGE_EMULATOR_HOST)._1 }}
+  sessionAffinity: None
+  type: NodePort
+{{- end }}

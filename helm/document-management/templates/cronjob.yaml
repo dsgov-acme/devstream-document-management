@@ -1,0 +1,63 @@
+# malware database updater
+{{- if .Values.env.CLAMAV_ENABLED }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: clamav-update-cron
+  namespace: {{ .Values.namespace | default "devstream" }}
+spec:
+  # configure it for a minute between 3 and 57 avoiding multiples of 10
+  # to meet ClamAV recommendation: https://docs.clamav.net/manual/Usage/Configuration.html#freshclamconf
+  schedule: "{{ .Values.clamav.database.hourlyRefreshMinute }} * * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          volumes:
+            - name: clamdb-storage
+              persistentVolumeClaim:
+                claimName: clamavdb-claim
+          containers:
+            - name: clamav-updater
+              image: "{{ .Values.clamav.updater.image.repository }}:{{ .Values.clamav.updater.image.tag }}"
+              imagePullPolicy: IfNotPresent
+              command:
+                - bash
+                - updateclamdb.sh
+              volumeMounts:
+                # this node mounting path needs to match the path configured for the signatures database during Docker image building (see files under docker/cvdupdater). Not to be changed.
+                - mountPath: "/persistent/storage/clamdb"
+                  name: clamdb-storage
+          restartPolicy: OnFailure
+
+---
+
+# malware database initializer
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: clamavdb-init
+  namespace: {{ .Values.namespace | default "devstream" }}
+spec:
+  # allows the database initializer pod to be cleanned after successful execution
+  ttlSecondsAfterFinished: {{ .Values.clamav.database.initPodCleanTimeInSeconds }}
+  template:
+    spec:
+      volumes:
+        - name: clamdb-storage
+          persistentVolumeClaim:
+            claimName: clamavdb-claim
+      containers:
+        - name: clamav-updater
+          image: "{{ .Values.clamav.updater.image.repository }}:{{ .Values.clamav.updater.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          command:
+            - bash
+            - updateclamdb.sh
+          volumeMounts:
+            # this node mounting path needs to match the path configured for the signatures database during Docker image building (see files under docker/cvdupdater). Not to be changed.
+            - mountPath: "/persistent/storage/clamdb"
+              name: clamdb-storage
+      restartPolicy: OnFailure
+{{- end }}

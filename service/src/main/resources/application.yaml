@@ -1,0 +1,99 @@
+server:
+  servlet:
+    context-path: /dm
+spring:
+  config:
+    import: sm://
+  sleuth:
+    sampler:
+      probability: ${OTEL_SAMPLER_PROBABILITY:1.0} # Valid values [0.0 - 1.0]
+  jackson:
+    serialization:
+      write-dates-with-zone-id: true
+      write-dates-as-timestamps: false
+    deserialization:
+      adjust_dates_to_context_time-zone: false
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${DB_CONNECTION_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  liquibase:
+    enabled: true
+    change-log: classpath:db/initial.xml
+    driver-class-name: org.postgresql.Driver
+    url: ${DB_CONNECTION_URL}
+    user: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  servlet:
+    multipart:
+      max-file-size: 200MB
+      max-request-size: 200MB
+  cloud:
+    gcp:
+      project-id: ${GCP_PROJECT_ID}
+      pubsub: # if the emulator host is set to false it will use the real pubsub service
+        emulator-host: ${PUBSUB_EMULATOR_HOST:false}
+
+management:
+  endpoints:
+    web:
+      cors:
+        allow-credentials: true
+        allowed-origins: ${ALLOWED_ORIGINS}
+        allowed-methods: "GET,POST,PUT,DELETE,PATCH,OPTIONS"
+        allowed-headers: "*"
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+document-management:
+  clamav: # this is the ability to disable it just for M1 Macs that lack support for clamav image
+    enabled: ${CLAMAV_ENABLED:true}
+  # values can be 'google' or 'filesystem'
+  storage-provider: ${STORAGE_PROVIDER}
+  # emulator option values applicable only for 'google' storage provider
+  gcloud-storage-emulator: # if this storage emulator enabled value is set to false it will use the real storage service
+    enabled: ${GOOGLE_STORAGE_EMULATED:false}
+    host: ${GCLOUD_STORAGE_EMULATOR_HOST}
+  pubsub:
+    enabled: ${PUBSUB_ENABLED:true}
+    clamav-topic: ${PUBSUB_CLAMAV_TOPIC}
+    document-processing-topic: ${PUBSUB_DOCUMENT_PROCESSING_TOPIC}
+    document-processing-result-topic: ${PUBSUB_DOCUMENT_PROCESSING_RESULT_TOPIC}
+    clamav-subscription: ${PUBSUB_CLAMAV_SUBSCRIPTION}
+    document-processing-subscription: ${PUBSUB_DOCUMENT_PROCESSING_SUBSCRIPTION}
+    document-processing-result-dead-letter-topic: ${PUBSUB_DOCUMENT_PROCESSING_RESULT_DEAD_LETTER_TOPIC}
+  google:
+    signed-url:
+      duration-seconds: 900
+    bucket:
+      unscanned-files: ${UNSCANNED_BUCKET_NAME:"unused"}
+      quarantined-files: ${QUARANTINED_BUCKET_NAME:"unused"}
+      scanned-files: ${SCANNED_BUCKET_NAME:"unused"}
+  processor:
+    document-quality-processor-id: ${DOCUMENT_QUALITY_PROCESSOR_ID}
+    document-id-proofing-processor-id: ${DOCUMENT_ID_PROOFING_PROCESSOR_ID}
+    location: us
+
+auth:
+  token-filter:
+    self-signed:
+      issuer: ${TOKEN_ISSUER}
+      public-key: ${SELF_SIGN_PUBLIC_KEY}
+  token-client:
+    self-signed:
+      issuer: ${TOKEN_ISSUER}
+      private-key: ${SELF_SIGN_PRIVATE_KEY}
+      roles: "um:reader, um:application-client"
+
+cerbos:
+  uri: ${CERBOS_URI}
+
+userManagement:
+  baseUrl: ${USER_MANAGEMENT_BASE_URL}
+
+allowed-types:
+  mime-types: ${ALLOWED_MIME_TYPES}
+  octet-stream-extensions: ${ALLOWED_OCTET_STREAM_EXTENSIONS}
